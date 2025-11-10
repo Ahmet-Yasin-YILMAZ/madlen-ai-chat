@@ -1,0 +1,36 @@
+services:
+  backend:
+    build:
+      context: ./bootcamptoprod/bootcamptoprod
+      dockerfile: Dockerfile        # ← oradaki Dockerfile
+    container_name: madlen-backend
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      # .env koyarsan buradan çeker
+      - OPENROUTER_API_KEY={YOUR_KEY_HERE}
+    volumes:
+      - ./uploads:/app/uploads
+      - ./data:/app/data
+    depends_on:
+      - jaeger
+
+  frontend:
+    build:
+      context: ./frontend/chat-ui   # ← React projesi burada
+      dockerfile: Dockerfile
+    container_name: madlen-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16687:16687"   # Jaeger UI
+      - "4316:4316"     # OTLP HTTP (backend buraya gönderecek)
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
